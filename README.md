@@ -6,41 +6,67 @@ This plugin leverages the built-in LSP client in Neovim and the `jsonls` languag
 
 ## Installation
 
-You can install this plugin using your favorite plugin manager.
+Install this plugin using your favorite plugin manager. The recommended way is to add it as a dependency to `nvim-lspconfig`.
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-{
-  "Ktsierra/nvim-expo-tools",
-  dependencies = { "neovim/nvim-lspconfig" },
+-- In your lspconfig setup file
+return {
+  'neovim/nvim-lspconfig',
+  dependencies = {
+    -- other dependencies...
+    'Ktsierra/nvim-expo-tools',
+  },
+  config = function()
+    -- your lspconfig setup...
+    local servers = {
+      jsonls = {
+        settings = {
+          json = {
+            schemas = require('expo-tools').schemas
+          }
+        }
+      },
+      -- other servers...
+    }
+
+    -- your handler to setup servers...
+  end
 }
 ```
 
 ## Usage
 
-This plugin exports a table of JSON schemas that you can merge into your `jsonls` configuration.
+Once installed and configured as a dependency for `nvim-lspconfig`, this plugin will automatically provide the Expo schemas to the `jsonls` language server.
 
-Here's an example of how to merge the schemas in your `lspconfig` setup:
+Here's a more complete example of how to merge the schemas within your `lspconfig` setup, ensuring any other schemas you have are preserved:
 
 ```lua
+-- inside your lspconfig config function
+
 local servers = {
   jsonls = {
     settings = {
       json = {
-        schemas = require('expo-tools').schemas
+        -- your other schemas can go here
+        schemas = {}
       }
     }
   },
   -- other servers...
 }
 
+-- Add the expo schemas
+local expo_schemas = require('expo-tools').schemas
+for _, schema in ipairs(expo_schemas) do
+  table.insert(servers.jsonls.settings.json.schemas, schema)
+end
+
 -- in your lspconfig setup loop
 require('lspconfig')['jsonls'].setup(servers.jsonls)
 ```
 
-Ensure you have `nvim-lspconfig` and the `jsonls` language server installed and configured.
-
 ## How it works
 
-This plugin fetches the official JSON schemas from the Expo repositories and provides them as a Lua table that you can easily merge into your `jsonls` language server configuration.
+This plugin simply provides a Lua table containing the official JSON schemas from the Expo repositories. You can then merge this table into your `jsonls` language server configuration.
